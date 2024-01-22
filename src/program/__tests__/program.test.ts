@@ -76,12 +76,15 @@ describe('main', () => {
         assign: 
             testlabel: ['reviewer1', 'reviewer2']
             testlabel2: ['reviewer3', 'reviewer4']
+            testlabel3: ['frominput']
     `
 
     // mock input options
     // @ts-ignore
     core.getInput.mockImplementation((input: string) => {
       switch (input) {
+        case 'labels':
+          return 'somelabel,anotherlabel,testlabel3,thirdlabel'
         case 'repo-token':
           return 'test-token'
         case 'config-file':
@@ -128,7 +131,7 @@ describe('main', () => {
       owner: 'test-owner',
       pull_number: 1,
       repo: 'test-repo',
-      reviewers: ['reviewer1', 'reviewer2', 'reviewer3', 'reviewer4']
+      reviewers: ['reviewer1', 'reviewer2', 'reviewer3', 'reviewer4', 'frominput']
     })
 
     expect(removeRequestedReviewersMock).toHaveBeenCalledTimes(0)
@@ -143,7 +146,7 @@ describe('main', () => {
       assigned_status: 'success',
       assigned_message: 'Reviewers have been assigned',
       assigned_url: 'test-url-request',
-      assigned_reviewers: ['reviewer1', 'reviewer2', 'reviewer3', 'reviewer4']
+      assigned_reviewers: ['reviewer1', 'reviewer2', 'reviewer3', 'reviewer4', 'frominput']
     }
 
     Object.keys(outputExpect).forEach((key, index) => {
@@ -173,6 +176,8 @@ describe('main', () => {
     // @ts-ignore
     core.getInput.mockImplementation((input: string) => {
       switch (input) {
+        case 'labels':
+          return ''
         case 'repo-token':
           return 'test-token'
         case 'config-file':
@@ -263,9 +268,11 @@ describe('main', () => {
     `
 
     // mock input options
-    // @ts-ignore
+    // @ts-ignore 
     core.getInput.mockImplementation((input: string) => {
       switch (input) {
+        case 'labels':
+          return ''
         case 'repo-token':
           return 'test-token'
         case 'config-file':
@@ -354,6 +361,8 @@ describe('main', () => {
     // @ts-ignore
     core.getInput.mockImplementation((input: string) => {
       switch (input) {
+        case 'labels':
+          return ''
         case 'repo-token':
           return 'test-token'
         case 'config-file':

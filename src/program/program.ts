@@ -35,11 +35,13 @@ export async function run(): Promise<void> {
       throw new Error('No context details')
     }
 
-    const inputLabels = core.getInput('labels', {required: false}).trim().split(',')
+    const inputLabels = core.getInput('labels', {required: false}).trim().split(',') 
     if(inputLabels.length > 0) {
       // add labels from input
-      contextDetails.labels
-        .concat(inputLabels)
+      contextDetails.labels = [
+        ...contextDetails.labels,
+        ...inputLabels
+      ]
         .filter((v, i, a) => a.indexOf(v) === i)
     }
 
