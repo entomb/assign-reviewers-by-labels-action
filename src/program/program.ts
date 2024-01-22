@@ -28,10 +28,19 @@ export async function run(): Promise<void> {
       required: false
     })
 
-    const contextDetails = getContextPullRequestDetails()
 
+    
+    const contextDetails = getContextPullRequestDetails() 
     if (contextDetails == null) {
       throw new Error('No context details')
+    }
+
+    const inputLabels = core.getInput('labels', {required: false}).trim().split(',')
+    if(inputLabels.length > 0) {
+      // add labels from input
+      contextDetails.labels
+        .concat(inputLabels)
+        .filter((v, i, a) => a.indexOf(v) === i)
     }
 
     let userConfig: Config | null

@@ -5,6 +5,9 @@ branding:
   color: 'blue'
 author: 'totallymoney'
 inputs:
+  labels:
+    description: 'comma separated list of labels to assign reviewers to. if empty, will use the PR labels'
+    default: ''
   repo-token:
     description: 'Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
     required: true
