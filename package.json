@@ -1,6 +1,6 @@
 {
   "name": "assign-reviewers-by-labels-action",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": false,
   "description": "Automatically assign reviewers to a PR using labels",
   "main": "lib/main.js",
