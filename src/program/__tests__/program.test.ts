@@ -24,8 +24,8 @@ vi.mock('@actions/github', () => {
 })
 
 interface MockGithubContext {
-  payload: typeof github.context['payload']
-  repo: typeof github.context['repo']
+  payload: (typeof github.context)['payload']
+  repo: (typeof github.context)['repo']
 }
 
 const mockGithubContext: MockGithubContext = {
@@ -131,7 +131,13 @@ describe('main', () => {
       owner: 'test-owner',
       pull_number: 1,
       repo: 'test-repo',
-      reviewers: ['reviewer1', 'reviewer2', 'reviewer3', 'reviewer4', 'frominput']
+      reviewers: [
+        'reviewer1',
+        'reviewer2',
+        'reviewer3',
+        'reviewer4',
+        'frominput'
+      ]
     })
 
     expect(removeRequestedReviewersMock).toHaveBeenCalledTimes(0)
@@ -146,7 +152,13 @@ describe('main', () => {
       assigned_status: 'success',
       assigned_message: 'Reviewers have been assigned',
       assigned_url: 'test-url-request',
-      assigned_reviewers: ['reviewer1', 'reviewer2', 'reviewer3', 'reviewer4', 'frominput']
+      assigned_reviewers: [
+        'reviewer1',
+        'reviewer2',
+        'reviewer3',
+        'reviewer4',
+        'frominput'
+      ]
     }
 
     Object.keys(outputExpect).forEach((key, index) => {
@@ -268,7 +280,7 @@ describe('main', () => {
     `
 
     // mock input options
-    // @ts-ignore 
+    // @ts-ignore
     core.getInput.mockImplementation((input: string) => {
       switch (input) {
         case 'labels':

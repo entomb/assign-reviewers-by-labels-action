@@ -78,7 +78,7 @@ const getYamlConfigAsync_1 = __nccwpck_require__(2313);
 const parseConfig_1 = __nccwpck_require__(7459);
 const getContextPullRequestDetails_1 = __nccwpck_require__(6342);
 const assignReviewersAsync_1 = __nccwpck_require__(9388);
-const unassignReviewersAsync_1 = __nccwpck_require__(5310);
+//import {unassignReviewersAsync} from '../utils/unassignReviewersAsync'
 const getConfigFromUrlAsync_1 = __nccwpck_require__(2807);
 const isValidUrl_1 = __nccwpck_require__(9771);
 /**
@@ -87,26 +87,25 @@ const isValidUrl_1 = __nccwpck_require__(9771);
  * @returns {Promise<void>}
  */
 function run() {
-    var _a, _b, _c;
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const client = github.getOctokit(core.getInput('repo-token', { required: true }));
             const configFilePath = core.getInput('config-file', { required: true });
-            const unassignIfLabelRemoved = core.getInput('unassign-if-label-removed', {
-                required: false
-            });
+            // const unassignIfLabelRemoved = core.getInput('unassign-if-label-removed', {
+            //   required: false
+            // })
             const contextDetails = (0, getContextPullRequestDetails_1.getContextPullRequestDetails)();
             if (contextDetails == null) {
                 throw new Error('No context details');
             }
-            const inputLabels = core.getInput('labels', { required: false }).trim().split(',');
+            const inputLabels = core
+                .getInput('labels', { required: false })
+                .trim()
+                .split(',');
             if (inputLabels.length > 0) {
                 // add labels from input
-                contextDetails.labels = [
-                    ...contextDetails.labels,
-                    ...inputLabels
-                ]
-                    .filter((v, i, a) => a.indexOf(v) === i);
+                contextDetails.labels = [...contextDetails.labels, ...inputLabels].filter((v, i, a) => a.indexOf(v) === i);
             }
             let userConfig;
             if ((0, isValidUrl_1.isValidUrl)(configFilePath)) {
@@ -137,36 +136,35 @@ function run() {
                 return;
             }
             core.debug(`${assignedResult.status} - ${assignedResult.message}`);
-            if (unassignIfLabelRemoved) {
-                core.debug('Unassigning reviewers...');
-                const unassignedResult = yield (0, unassignReviewersAsync_1.unassignReviewersAsync)({
-                    client,
-                    contextDetails: {
-                        labels: contextDetails.labels,
-                        baseSha: contextDetails.baseSha,
-                        reviewers: [
-                            ...new Set([
-                                ...contextDetails.reviewers,
-                                ...((_c = (_b = assignedResult.data) === null || _b === void 0 ? void 0 : _b.reviewers) !== null && _c !== void 0 ? _c : [])
-                            ])
-                        ]
-                    },
-                    contextPayload,
-                    labelReviewers: config.assign
-                });
-                if (unassignedResult.status === 'error') {
-                    core.setFailed(unassignedResult.message);
-                    return;
-                }
-                setResultOutput('unassigned', unassignedResult);
-                core.debug(`${unassignedResult.status} - ${unassignedResult.message}`);
-            }
-            else {
-                setResultOutput('unassigned', {
-                    status: 'info',
-                    message: 'Skip unassigning reviewers'
-                });
-            }
+            // if (unassignIfLabelRemoved) {
+            //   core.debug('Unassigning reviewers...')
+            //   const unassignedResult = await unassignReviewersAsync({
+            //     client,
+            //     contextDetails: {
+            //       labels: contextDetails.labels,
+            //       baseSha: contextDetails.baseSha,
+            //       reviewers: [
+            //         ...new Set([
+            //           ...contextDetails.reviewers,
+            //           ...(assignedResult.data?.reviewers ?? [])
+            //         ])
+            //       ]
+            //     },
+            //     contextPayload,
+            //     labelReviewers: config.assign
+            //   })
+            //   if (unassignedResult.status === 'error') {
+            //     core.setFailed(unassignedResult.message)
+            //     return
+            //   }
+            //   setResultOutput('unassigned', unassignedResult)
+            //   core.debug(`${unassignedResult.status} - ${unassignedResult.message}`)
+            // } else {
+            setResultOutput('unassigned', {
+                status: 'info',
+                message: 'Skip unassigning reviewers'
+            });
+            // }
             setResultOutput('assigned', assignedResult);
         }
         catch (error) {
@@ -625,97 +623,6 @@ function setReviewersAsync(options) {
     });
 }
 exports.setReviewersAsync = setReviewersAsync;
-
-
-/***/ }),
-
-/***/ 5310:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.unassignReviewersAsync = void 0;
-const setReviewersAsync_1 = __nccwpck_require__(992);
-/**
- * Determine the reviewers that should be removed
- * depending on the state of the PR. Then, request
- * to remove those reviewers from the PR.
- *
- * @param {Options} options
- * @returns {Promise<AssignReviewersReturn}
- * The status of whether the reviewers were unassigned
- * as well as data containing those reviewers.
- */
-function unassignReviewersAsync({ client, labelReviewers, contextDetails, contextPayload }) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (contextDetails == null) {
-            return {
-                status: 'error',
-                message: 'No action context'
-            };
-        }
-        const labels = Object.keys(labelReviewers);
-        const reviewersByLabelInclude = [];
-        const reviewersByLabelMiss = [];
-        for (const label of labels) {
-            if (!contextDetails.labels.includes(label)) {
-                reviewersByLabelMiss.push(...labelReviewers[label]);
-            }
-            else {
-                reviewersByLabelInclude.push(...labelReviewers[label]);
-            }
-        }
-        if (reviewersByLabelMiss.length === 0) {
-            return {
-                status: 'info',
-                message: 'No reviewers to unassign'
-            };
-        }
-        let reviewersToUnassign = [];
-        if (contextDetails.labels.length === 0) {
-            reviewersToUnassign = [
-                ...new Set([...reviewersByLabelMiss, ...reviewersByLabelInclude])
-            ];
-        }
-        else {
-            reviewersToUnassign = reviewersByLabelMiss.filter(reviewer => !reviewersByLabelInclude.includes(reviewer));
-        }
-        if (reviewersToUnassign.length === 0) {
-            return {
-                status: 'info',
-                message: 'No reviewers to unassign'
-            };
-        }
-        const result = yield (0, setReviewersAsync_1.setReviewersAsync)({
-            client,
-            reviewers: reviewersToUnassign,
-            contextPayload,
-            action: 'unassign'
-        });
-        if (result == null) {
-            return {
-                status: 'info',
-                message: 'No reviewers to unassign'
-            };
-        }
-        return {
-            status: 'success',
-            message: 'Reviewers have been unassigned',
-            data: { url: result.url, reviewers: reviewersToUnassign }
-        };
-    });
-}
-exports.unassignReviewersAsync = unassignReviewersAsync;
 
 
 /***/ }),

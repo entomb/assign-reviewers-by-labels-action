@@ -2,7 +2,7 @@ import type {WebhookPayload} from '@actions/github/lib/interfaces'
 import type {Config} from '../config'
 import type {AssignReviewersReturn, Client} from '../types'
 import type {ContextPullRequestDetails} from './getContextPullRequestDetails'
-import {setReviewersAsync} from './setReviewersAsync' 
+import {setReviewersAsync} from './setReviewersAsync'
 
 interface Options {
   client: Client
@@ -43,7 +43,6 @@ export async function assignReviewersAsync({
   }
 
   const reviewersToAssign = [...new Set(reviewersByLabels)]
-
 
   if (reviewersToAssign.length === 0) {
     return {

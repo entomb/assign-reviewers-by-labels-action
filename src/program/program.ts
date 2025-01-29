@@ -7,7 +7,7 @@ import {getYamlConfigAsync} from '../utils/getYamlConfigAsync'
 import {parseConfig} from '../utils/parseConfig'
 import {getContextPullRequestDetails} from '../utils/getContextPullRequestDetails'
 import {assignReviewersAsync} from '../utils/assignReviewersAsync'
-import {unassignReviewersAsync} from '../utils/unassignReviewersAsync'
+//import {unassignReviewersAsync} from '../utils/unassignReviewersAsync'
 import {getConfigFromUrlAsync} from '../utils/getConfigFromUrlAsync'
 import {isValidUrl} from '../utils/isValidUrl'
 
@@ -24,25 +24,24 @@ export async function run(): Promise<void> {
       core.getInput('repo-token', {required: true})
     )
     const configFilePath = core.getInput('config-file', {required: true})
-    const unassignIfLabelRemoved = core.getInput('unassign-if-label-removed', {
-      required: false
-    })
+    // const unassignIfLabelRemoved = core.getInput('unassign-if-label-removed', {
+    //   required: false
+    // })
 
-
-    
-    const contextDetails = getContextPullRequestDetails() 
+    const contextDetails = getContextPullRequestDetails()
     if (contextDetails == null) {
       throw new Error('No context details')
     }
 
-    const inputLabels = core.getInput('labels', {required: false}).trim().split(',') 
-    if(inputLabels.length > 0) {
+    const inputLabels = core
+      .getInput('labels', {required: false})
+      .trim()
+      .split(',')
+    if (inputLabels.length > 0) {
       // add labels from input
-      contextDetails.labels = [
-        ...contextDetails.labels,
-        ...inputLabels
-      ]
-        .filter((v, i, a) => a.indexOf(v) === i)
+      contextDetails.labels = [...contextDetails.labels, ...inputLabels].filter(
+        (v, i, a) => a.indexOf(v) === i
+      )
     }
 
     let userConfig: Config | null
@@ -96,38 +95,38 @@ export async function run(): Promise<void> {
 
     core.debug(`${assignedResult.status} - ${assignedResult.message}`)
 
-    if (unassignIfLabelRemoved) {
-      core.debug('Unassigning reviewers...')
+    // if (unassignIfLabelRemoved) {
+    //   core.debug('Unassigning reviewers...')
 
-      const unassignedResult = await unassignReviewersAsync({
-        client,
-        contextDetails: {
-          labels: contextDetails.labels,
-          baseSha: contextDetails.baseSha,
-          reviewers: [
-            ...new Set([
-              ...contextDetails.reviewers,
-              ...(assignedResult.data?.reviewers ?? [])
-            ])
-          ]
-        },
-        contextPayload,
-        labelReviewers: config.assign
-      })
+    //   const unassignedResult = await unassignReviewersAsync({
+    //     client,
+    //     contextDetails: {
+    //       labels: contextDetails.labels,
+    //       baseSha: contextDetails.baseSha,
+    //       reviewers: [
+    //         ...new Set([
+    //           ...contextDetails.reviewers,
+    //           ...(assignedResult.data?.reviewers ?? [])
+    //         ])
+    //       ]
+    //     },
+    //     contextPayload,
+    //     labelReviewers: config.assign
+    //   })
 
-      if (unassignedResult.status === 'error') {
-        core.setFailed(unassignedResult.message)
-        return
-      }
+    //   if (unassignedResult.status === 'error') {
+    //     core.setFailed(unassignedResult.message)
+    //     return
+    //   }
 
-      setResultOutput('unassigned', unassignedResult)
-      core.debug(`${unassignedResult.status} - ${unassignedResult.message}`)
-    } else {
-      setResultOutput('unassigned', {
-        status: 'info',
-        message: 'Skip unassigning reviewers'
-      })
-    }
+    //   setResultOutput('unassigned', unassignedResult)
+    //   core.debug(`${unassignedResult.status} - ${unassignedResult.message}`)
+    // } else {
+    setResultOutput('unassigned', {
+      status: 'info',
+      message: 'Skip unassigning reviewers'
+    })
+    // }
 
     setResultOutput('assigned', assignedResult)
   } catch (error) {
