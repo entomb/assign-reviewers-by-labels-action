@@ -228,18 +228,11 @@ function assignReviewersAsync({ client, labelReviewers, contextDetails, contextP
                 reviewersByLabels.push(...labelReviewers[label]);
             }
         }
-        const reviewersToAssign = [...new Set(reviewersByLabels)];
+        const reviewersToAssign = [...new Set(reviewersByLabels)].filter(reviewer => !contextDetails.reviewers.includes(reviewer));
         if (reviewersToAssign.length === 0) {
             return {
                 status: 'info',
-                message: 'No reviewers to assign from the labels provided'
-            };
-        }
-        const diffNewReviewers = reviewersToAssign.filter(reviewer => !contextDetails.reviewers.includes(reviewer));
-        if (diffNewReviewers.length === 0) {
-            return {
-                status: 'info',
-                message: 'No new reviewers to assign'
+                message: 'No new reviewers to assign from the labels provided'
             };
         }
         const result = yield (0, setReviewersAsync_1.setReviewersAsync)({
