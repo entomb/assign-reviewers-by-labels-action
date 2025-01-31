@@ -95,7 +95,7 @@ function run() {
             // const unassignIfLabelRemoved = core.getInput('unassign-if-label-removed', {
             //   required: false
             // })
-            const contextDetails = (0, getContextPullRequestDetails_1.getContextPullRequestDetails)();
+            const contextDetails = yield (0, getContextPullRequestDetails_1.getContextPullRequestDetails)(client);
             if (contextDetails == null) {
                 throw new Error('No context details');
             }
@@ -342,6 +342,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getContextPullRequestDetails = void 0;
 const github = __importStar(__nccwpck_require__(5438));
@@ -352,19 +361,31 @@ const github = __importStar(__nccwpck_require__(5438));
  * The pull request details that the application
  * requires.
  */
-function getContextPullRequestDetails() {
+function getContextPullRequestDetails(client) {
     var _a;
-    const pullRequest = github.context.payload.pull_request;
-    if (typeof pullRequest === 'undefined') {
-        return null;
-    }
-    const labels = pullRequest.labels;
-    const reviewers = pullRequest.requested_reviewers;
-    return {
-        labels: labels.map(label => label.name),
-        reviewers: reviewers.map(reviewer => reviewer.login),
-        baseSha: (_a = pullRequest === null || pullRequest === void 0 ? void 0 : pullRequest.base) === null || _a === void 0 ? void 0 : _a.sha
-    };
+    return __awaiter(this, void 0, void 0, function* () {
+        const pullRequest = github.context.payload.pull_request;
+        if (typeof pullRequest === 'undefined') {
+            return null;
+        }
+        const labels = pullRequest.labels;
+        const reviewers = pullRequest.requested_reviewers;
+        // const get reviews submitted by reviewers
+        const currentReviews = yield client.rest.pulls.listReviews({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            pull_number: pullRequest.number
+        });
+        const uniqueReviewers = new Set([
+            ...reviewers.map(reviewer => reviewer.login),
+            ...currentReviews.data.map(review => { var _a; return (_a = review.user) === null || _a === void 0 ? void 0 : _a.login; })
+        ]);
+        return {
+            labels: labels.map(label => label.name),
+            reviewers: [...uniqueReviewers].filter(Boolean),
+            baseSha: (_a = pullRequest === null || pullRequest === void 0 ? void 0 : pullRequest.base) === null || _a === void 0 ? void 0 : _a.sha
+        };
+    });
 }
 exports.getContextPullRequestDetails = getContextPullRequestDetails;
 
