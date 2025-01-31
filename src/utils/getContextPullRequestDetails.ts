@@ -15,7 +15,9 @@ export type ContextPullRequestDetails = {
  * The pull request details that the application
  * requires.
  */
-export function getContextPullRequestDetails(): ContextPullRequestDetails | null {
+export async function getContextPullRequestDetails(
+  client: ReturnType<typeof github.getOctokit>
+): Promise<ContextPullRequestDetails | null> {
   const pullRequest = github.context.payload.pull_request
 
   if (typeof pullRequest === 'undefined') {
@@ -25,9 +27,21 @@ export function getContextPullRequestDetails(): ContextPullRequestDetails | null
   const labels = pullRequest.labels as GithubLabel[]
   const reviewers = pullRequest.requested_reviewers as GithubReviewer[]
 
+  // const get reviews submitted by reviewers
+  const currentReviews = await client.rest.pulls.listReviews({
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
+    pull_number: pullRequest.number
+  })
+
+  const uniqueReviewers = new Set([
+    ...reviewers.map(reviewer => reviewer.login),
+    ...currentReviews.data.map(review => review.user?.login)
+  ])
+
   return {
     labels: labels.map(label => label.name),
-    reviewers: reviewers.map(reviewer => reviewer.login),
+    reviewers: [...uniqueReviewers].filter(Boolean) as string[],
     baseSha: pullRequest?.base?.sha
   }
 }
